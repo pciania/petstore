@@ -31,4 +31,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'petstore' => [
+        'base_url' => env('PETSTORE_BASE_URL', 'https://petstore.swagger.io/v2'),
+        'timeout'  => (int) env('PETSTORE_TIMEOUT', 10),
+        'retries'  => (int) env('PETSTORE_RETRIES', 2),
+    ],
+
 ];
