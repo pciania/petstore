@@ -111,7 +111,7 @@ class PetService
     }
 
     /**
-     * @param  string[]|null  $raw
+     * @param  array<int, string|null>|null  $raw
      * @return array<int, array{id: int, name: string}>
      */
     private function normalizeTags(?array $raw): array
@@ -120,11 +120,16 @@ class PetService
             return [];
         }
 
-        return array_values(array_map(
-            fn (string $tag, int $index) => ['id' => $index + 1, 'name' => trim($tag)],
-            array_filter(array_map('trim', $raw)),
-            array_keys(array_filter(array_map('trim', $raw))),
+        $filtered = array_values(array_filter(
+            array_map('trim', array_filter($raw, fn ($v) => $v !== null)),
+            fn (string $v) => $v !== '',
         ));
+
+        return array_map(
+            fn (string $tag, int $index) => ['id' => $index + 1, 'name' => $tag],
+            $filtered,
+            array_keys($filtered),
+        );
     }
 
     /**

@@ -132,6 +132,23 @@ it('fails validation when a tag is too long', function () {
         ->assertSessionHasErrors('tags.0');
 });
 
+it('passes validation when tags array contains an empty string', function () {
+    $pet = fakePetData(['id' => 1, 'name' => 'Fluffy']);
+
+    $this->mock(PetService::class)
+        ->shouldReceive('create')
+        ->once()
+        ->andReturn($pet);
+
+    $this->post(route('pets.store'), [
+        'name'   => 'Fluffy',
+        'status' => 'available',
+        'tags'   => [''],
+    ])
+        ->assertRedirect()
+        ->assertSessionMissing('errors');
+});
+
 it('flashes an error when store API call fails', function () {
     $this->mock(PetService::class)
         ->shouldReceive('create')

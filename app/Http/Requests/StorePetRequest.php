@@ -24,7 +24,7 @@ class StorePetRequest extends FormRequest
             'category.id'   => ['required_with:category', 'integer'],
             'category.name' => ['required_with:category', 'string', 'max:60'],
             'tags'          => ['nullable', 'array'],
-            'tags.*'        => ['string', 'max:60'],
+            'tags.*'        => ['nullable', 'string', 'max:60'],
             'photo_urls'    => ['nullable', 'string'],
         ];
     }
