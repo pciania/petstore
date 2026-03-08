@@ -16,8 +16,8 @@ class UpdatePetRequest extends FormRequest
             'name'          => ['required', 'string', 'min:2', 'max:120'],
             'status'        => ['required', 'string', 'in:available,pending,sold'],
             'category'      => ['nullable', 'array'],
-            'category.id'   => ['required_with:category', 'integer'],
-            'category.name' => ['required_with:category', 'string', 'max:60'],
+            'category.id'   => ['nullable', 'integer'],
+            'category.name' => ['nullable', 'string', 'max:60'],
             'tags'          => ['nullable', 'array'],
             'tags.*'        => ['nullable', 'string', 'max:60'],
             'photo_urls'    => ['nullable', 'string'],
@@ -27,14 +27,17 @@ class UpdatePetRequest extends FormRequest
     {
         $validator->after(function (Validator $v) {
             $category = $this->input('category');
-            if (empty($category)) {
+
+            if (empty($category['id']) || empty($category['name'])) {
                 return;
             }
+
             $valid = collect(StorePetRequest::CATEGORIES)->contains(
                 fn (array $cat) =>
-                    (int) ($category['id'] ?? -1) === $cat['id']
-                    && ($category['name'] ?? '') === $cat['name']
+                    (int) $category['id'] === $cat['id']
+                    && $category['name'] === $cat['name']
             );
+
             if (! $valid) {
                 $v->errors()->add('category', 'The selected category is invalid.');
             }

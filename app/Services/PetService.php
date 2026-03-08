@@ -138,7 +138,7 @@ class PetService
      */
     private function resolveCategory(?array $category): ?array
     {
-        if (empty($category)) {
+        if (empty($category['id']) || empty($category['name'])) {
             return null;
         }
 

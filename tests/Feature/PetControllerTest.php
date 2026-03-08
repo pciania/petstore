@@ -149,6 +149,23 @@ it('passes validation when tags array contains an empty string', function () {
         ->assertSessionMissing('errors');
 });
 
+it('passes validation when no category is selected', function () {
+    $pet = fakePetData(['id' => 1, 'name' => 'Fluffy']);
+
+    $this->mock(PetService::class)
+        ->shouldReceive('create')
+        ->once()
+        ->andReturn($pet);
+
+    $this->post(route('pets.store'), [
+        'name'     => 'Fluffy',
+        'status'   => 'available',
+        'category' => ['id' => null, 'name' => null],
+    ])
+        ->assertRedirect()
+        ->assertSessionMissing('errors');
+});
+
 it('flashes an error when store API call fails', function () {
     $this->mock(PetService::class)
         ->shouldReceive('create')
