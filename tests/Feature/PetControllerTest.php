@@ -19,6 +19,7 @@ function fakePetData(array $overrides = []): PetData
         'status'    => 'available',
         'photoUrls' => [],
         'tags'      => [],
+        'category'  => null,
     ], $overrides));
 }
 
@@ -84,8 +85,10 @@ it('creates a pet and redirects to its show page', function () {
         ->andReturn($pet);
 
     $this->post(route('pets.store'), [
-        'name'   => 'Rex',
-        'status' => 'available',
+        'name'     => 'Rex',
+        'status'   => 'available',
+        'category' => ['id' => 1, 'name' => 'Dogs'],
+        'tags'     => ['friendly', 'trained'],
     ])
         ->assertRedirect(route('pets.show', 999))
         ->assertSessionHas('success');
@@ -107,6 +110,26 @@ it('fails validation when status is invalid', function () {
     ])
         ->assertRedirect()
         ->assertSessionHasErrors('status');
+});
+
+it('fails validation when category is invalid', function () {
+    $this->post(route('pets.store'), [
+        'name'     => 'Fluffy',
+        'status'   => 'available',
+        'category' => ['id' => 99, 'name' => 'Reptiles'],
+    ])
+        ->assertRedirect()
+        ->assertSessionHasErrors('category');
+});
+
+it('fails validation when a tag is too long', function () {
+    $this->post(route('pets.store'), [
+        'name'   => 'Fluffy',
+        'status' => 'available',
+        'tags'   => [str_repeat('a', 61)],
+    ])
+        ->assertRedirect()
+        ->assertSessionHasErrors('tags.0');
 });
 
 it('flashes an error when store API call fails', function () {
@@ -179,9 +202,11 @@ it('updates a pet and redirects to its show page', function () {
         ->andReturn($pet);
 
     $this->put(route('pets.update', 123456), [
-        'id'     => 123456,
-        'name'   => 'Buddy Updated',
-        'status' => 'pending',
+        'id'       => 123456,
+        'name'     => 'Buddy Updated',
+        'status'   => 'pending',
+        'category' => ['id' => 2, 'name' => 'Cats'],
+        'tags'     => ['playful'],
     ])
         ->assertRedirect(route('pets.show', 123456))
         ->assertSessionHas('success');

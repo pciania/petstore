@@ -77,7 +77,8 @@ class PetService
             name: $request->validated('name'),
             status: $request->validated('status'),
             photoUrls: $this->normalizePhotoUrls($request->validated('photo_urls', '')),
-            tags: [],
+            tags: $this->normalizeTags($request->validated('tags', [])),
+            category: $this->resolveCategory($request->validated('category')),
         );
     }
 
@@ -88,7 +89,8 @@ class PetService
             name: $request->validated('name'),
             status: $request->validated('status'),
             photoUrls: $this->normalizePhotoUrls($request->validated('photo_urls', '')),
-            tags: [],
+            tags: $this->normalizeTags($request->validated('tags', [])),
+            category: $this->resolveCategory($request->validated('category')),
         );
     }
 
@@ -106,6 +108,39 @@ class PetService
         }
 
         return [];
+    }
+
+    /**
+     * @param  string[]|null  $raw
+     * @return array<int, array{id: int, name: string}>
+     */
+    private function normalizeTags(?array $raw): array
+    {
+        if (empty($raw)) {
+            return [];
+        }
+
+        return array_values(array_map(
+            fn (string $tag, int $index) => ['id' => $index + 1, 'name' => trim($tag)],
+            array_filter(array_map('trim', $raw)),
+            array_keys(array_filter(array_map('trim', $raw))),
+        ));
+    }
+
+    /**
+     * @param  array{id: int, name: string}|null  $category
+     * @return array{id: int, name: string}|null
+     */
+    private function resolveCategory(?array $category): ?array
+    {
+        if (empty($category)) {
+            return null;
+        }
+
+        return [
+            'id'   => (int) $category['id'],
+            'name' => (string) $category['name'],
+        ];
     }
 }
 

@@ -6,8 +6,8 @@ class PetData
 {
     /**
      * @param  string[]  $photoUrls
-     * @param  array<int, array{id?: int, name?: string}>  $tags
-     * @param  array{id?: int, name?: string}|null  $category
+     * @param  array<int, array{id: int, name: string}>  $tags
+     * @param  array{id: int, name: string}|null  $category
      */
     public function __construct(
         public readonly int $id,
@@ -29,10 +29,30 @@ class PetData
             status: (string) ($data['status'] ?? 'available'),
             photoUrls: array_values(array_filter((array) ($data['photoUrls'] ?? []))),
             tags: array_values(array_filter((array) ($data['tags'] ?? []), 'is_array')),
-            category: isset($data['category']) && is_array($data['category'])
-                ? $data['category']
-                : null,
+            category: self::parseCategory($data['category'] ?? null),
         );
+    }
+
+    /**
+     * @param  mixed  $raw
+     * @return array{id: int, name: string}|null
+     */
+    private static function parseCategory(mixed $raw): ?array
+    {
+        if (! is_array($raw)) {
+            return null;
+        }
+
+        $name = trim((string) ($raw['name'] ?? ''));
+
+        if ($name === '' || $name === 'string') {
+            return null;
+        }
+
+        return [
+            'id'   => (int) ($raw['id'] ?? 0),
+            'name' => $name,
+        ];
     }
 
     /**

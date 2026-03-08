@@ -67,7 +67,7 @@ class PetstoreClient
             ];
         }
 
-        return $this->request('POST', "pet/{$petId}/uploadFile", [
+        return $this->request('POST', "pet/{$petId}/uploadImage", [
             'multipart' => $multipart,
             'headers'   => ['Accept' => 'application/json'],
         ]);

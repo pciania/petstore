@@ -42,9 +42,11 @@
                         <span class="badge status-badge-{{ $pet->status }}">{{ ucfirst($pet->status) }}</span>
                     </dd>
 
-                    @if ($pet->category)
+                    @if (!empty($pet->category['name']))
                         <dt class="col-sm-3">Category</dt>
-                        <dd class="col-sm-9">{{ $pet->category['name'] ?? '—' }}</dd>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-primary">{{ $pet->category['name'] }}</span>
+                        </dd>
                     @endif
 
                     @if ($pet->tags)
