@@ -1,66 +1,132 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
-
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+﻿# Petstore — Laravel CRUD Application
+- Layered architecture (Controller → Service → API Client → External API)
+- Dependency Injection via Laravel's IoC container
+- Custom Data Transfer Objects (DTOs)
+- Unified error handling with a custom exception class
+- Form Request validation
+- Blade views with Bootstrap 5
+- Full test coverage using **Pest**
+---
+## Architecture
+```
+HTTP Request
+    └── PetController          (app/Http/Controllers)
+            └── PetService     (app/Services)
+                    └── PetstoreClient   (app/Integrations/Petstore)
+                                └── Swagger Petstore API (external)
+```
+| Layer | Responsibility |
+|---|---|
+| `PetController` | Handle HTTP input/output, catch exceptions, flash messages |
+| `PetService` | Orchestrate operations, build DTOs, call the client |
+| `PetstoreClient` | Communicate with the external API, wrap Guzzle, throw `PetstoreException` |
+| `PetData` | Typed DTO: map API response → app object, app object → API payload |
+| `PetstoreException` | Unified exception for all API errors (HTTP errors, network failures, invalid responses) |
+---
+## Requirements
+- PHP ^8.1
+- Composer
+- A working internet connection (for calling the external Petstore API)
+---
+## Installation
+```bash
+git clone <repository-url> petstore
+cd petstore
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+All data comes from the external API -no database needed.
+---
+## Environment Configuration
+Open `.env` and review the Petstore settings:
+```dotenv
+PETSTORE_BASE_URL=https://petstore.swagger.io/v2
+PETSTORE_TIMEOUT=10
+PETSTORE_RETRIES=2
+```
+| Variable | Default | Description |
+|---|---|---|
+| `PETSTORE_BASE_URL` | `https://petstore.swagger.io/v2` | Base URL of the Petstore API |
+| `PETSTORE_TIMEOUT` | `10` | HTTP request timeout in seconds |
+| `PETSTORE_RETRIES` | `2` | Number of automatic retries on network/server errors |
+---
+## Running the Application
+```bash
+php artisan serve
+```
+Then open [http://localhost:8000](http://localhost:8000) — it redirects to `/pets`.
+### Available pages
+| Route | Description |
+|---|---|
+| `GET /pets` | List pets by status (filter via dropdown) |
+| `GET /pets/create` | Create a new pet |
+| `GET /pets/{id}` | View a single pet |
+| `GET /pets/{id}/edit` | Edit a pet |
+---
+## Running Tests
+```bash
+php artisan test
+# or directly:
+php vendor/bin/pest
+```
+### Test structure
+| File | Type | Description |
+|---|---|---|
+| `tests/Unit/PetstoreClientTest.php` | Unit | Tests the API client with a Guzzle `MockHandler` — no real HTTP calls |
+| `tests/Feature/PetControllerTest.php` | Feature | Tests all controller routes, validation, error handling |
+Run only unit tests:
+```bash
+php vendor/bin/pest tests/Unit
+```
+Run only feature tests:
+```bash
+php vendor/bin/pest tests/Feature
+```
+---
+## Project Structure
+```
+app/
+├── Data/
+│   └── PetData.php                  # DTO: API response ↔ application object
+├── Http/
+│   ├── Controllers/
+│   │   └── PetController.php        # Thin resource controller
+│   └── Requests/
+│       ├── StorePetRequest.php      # Validation for create
+│       └── UpdatePetRequest.php     # Validation for update
+├── Integrations/
+│   └── Petstore/
+│       ├── PetstoreClient.php       # Guzzle-based API client
+│       └── PetstoreException.php    # Unified exception
+├── Providers/
+│   └── AppServiceProvider.php       # IoC bindings for PetstoreClient
+└── Services/
+    └── PetService.php               # Business logic & orchestration
+resources/views/pets/
+├── _form.blade.php                  # Shared form partial
+├── create.blade.php
+├── edit.blade.php
+├── index.blade.php
+└── show.blade.php
+tests/
+├── Feature/PetControllerTest.php
+└── Unit/PetstoreClientTest.php
+```
+---
+## External API Dependency
+This application integrates with the **Swagger Petstore API** (`https://petstore.swagger.io/v2`), a publicly available demo API.
+> **Important:** The Petstore API is a shared, public demo service. It does not persist data reliably — records created by one user may be overwritten or deleted by others at any time. IDs are not guaranteed to remain valid between requests.
+>
+> This is expected behavior for a demo API and does not indicate a bug in this application. All error responses from the API are caught and displayed as user-friendly flash messages.
+The application handles the following error cases gracefully:
+- `404` — Pet not found (redirect with message)
+- `4xx` — Invalid input (redirect back with message)
+- `5xx` — Server error (with automatic retry)
+- Network timeouts and connection failures (redirect with message)
+---
+## Code Style
+The project follows [Laravel coding conventions](https://laravel.com/docs/contributions#coding-style) and PSR-12. You can run Laravel Pint to check formatting:
+```bash
+./vendor/bin/pint --test
+```
